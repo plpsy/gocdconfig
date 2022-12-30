@@ -1,0 +1,189 @@
+{
+  "group": "plpsy",
+  "name": "go",
+  "display_order_weight": -1.0,
+  "label_template": "${COUNT}",
+  "lock_behavior": "none",
+  "environment_variables": [],
+  "parameters": [],
+  "materials": [
+    {
+      "url": "https://github.com/plpsy/rtframe.git",
+      "branch": "dsp-fpga-devel",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/plpsy/rtframe",
+      "auto_update": true,
+      "name": "rtframe",
+      "type": "git"
+    },
+    {
+      "url": "https://github.com/plpsy/rtfrep.git",
+      "branch": "master",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/plpsy/rtfrep",
+      "auto_update": true,
+      "name": "rtfrep",
+      "type": "git"
+    },
+    {
+      "url": "https://github.com/plpsy/rtfagent.git",
+      "branch": "master",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/plpsy/rtfagent",
+      "auto_update": true,
+      "name": "rtfagent",
+      "type": "git"
+    },
+    {
+      "url": "https://github.com/plpsy/nsq.git",
+      "branch": "master",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/nsqio/nsq",
+      "auto_update": true,
+      "name": "nsq",
+      "type": "git"
+    }
+  ],
+  "stages": [
+    {
+      "name": "build",
+      "fetch_materials": true,
+      "never_cleanup_artifacts": false,
+      "clean_working_directory": false,
+      "approval": {
+        "type": "success",
+        "users": [],
+        "roles": [],
+        "allow_only_on_success": false
+      },
+      "environment_variables": [],
+      "jobs": [
+        {
+          "name": "build-rtframe",
+          "environment_variables": [],
+          "tabs": [],
+          "resources": [],
+          "artifacts": [
+            {
+              "source": "src/github.com/plpsy/rtframe/bin",
+              "destination": "",
+              "type": "build"
+            }
+          ],
+          "timeout": 0.0,
+          "tasks": [
+            {
+              "command": "./build-arm-go.sh",
+              "working_directory": "src/github.com/plpsy/rtframe",
+              "timeout": -1.0,
+              "arguments": [],
+              "run_if": "passed",
+              "type": "exec"
+            }
+          ]
+        },
+        {
+          "name": "build-rtfrep",
+          "environment_variables": [],
+          "tabs": [],
+          "resources": [],
+          "artifacts": [
+            {
+              "source": "src/github.com/plpsy/rtfrep/rtfrep",
+              "destination": "",
+              "type": "build"
+            }
+          ],
+          "timeout": 0.0,
+          "tasks": [
+            {
+              "command": "./build-arm-go.sh",
+              "working_directory": "src/github.com/plpsy/rtfrep",
+              "timeout": -1.0,
+              "arguments": [],
+              "run_if": "passed",
+              "type": "exec"
+            }
+          ]
+        },
+        {
+          "name": "build-rtfagent",
+          "environment_variables": [],
+          "tabs": [],
+          "resources": [],
+          "artifacts": [
+            {
+              "source": "src/github.com/plpsy/rtfagent/rtfagent",
+              "destination": "",
+              "type": "build"
+            }
+          ],
+          "timeout": 0.0,
+          "tasks": [
+            {
+              "command": "./build-arm-go.sh",
+              "working_directory": "src/github.com/plpsy/rtfagent",
+              "timeout": -1.0,
+              "arguments": [],
+              "run_if": "passed",
+              "type": "exec"
+            }
+          ]
+        },
+        {
+          "name": "build-nsq",
+          "environment_variables": [],
+          "tabs": [],
+          "resources": [],
+          "artifacts": [
+            {
+              "source": "src/github.com/nsqio/nsq/apps/nsqd/nsqd",
+              "destination": "",
+              "type": "build"
+            },
+            {
+              "source": "src/github.com/nsqio/nsq/apps/nsqadmin/nsqadmin",
+              "destination": "",
+              "type": "build"
+            }
+          ],
+          "timeout": 0.0,
+          "tasks": [
+            {
+              "command": "./build-arm-go.sh",
+              "working_directory": "src/github.com/nsqio/nsq/apps/nsqd",
+              "timeout": -1.0,
+              "arguments": [],
+              "run_if": "passed",
+              "type": "exec"
+            },
+            {
+              "command": "./build-arm-go.sh",
+              "working_directory": "src/github.com/nsqio/nsq/apps/nsqadmin",
+              "timeout": -1.0,
+              "arguments": [],
+              "run_if": "passed",
+              "type": "exec"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
