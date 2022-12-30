@@ -8,19 +8,6 @@
   "parameters": [],
   "materials": [
     {
-      "url": "https://github.com/plpsy/rtframe.git",
-      "branch": "dsp-fpga-devel",
-      "shallow_clone": false,
-      "filter": {
-        "ignore": [],
-        "includes": []
-      },
-      "destination": "src/github.com/plpsy/rtframe",
-      "auto_update": true,
-      "name": "rtframe",
-      "type": "git"
-    },
-    {
       "url": "https://github.com/plpsy/rtfrep.git",
       "branch": "master",
       "shallow_clone": false,
@@ -58,11 +45,50 @@
       "auto_update": true,
       "name": "nsq",
       "type": "git"
+    },
+    {
+      "url": "https://github.com/plpsy/rtframe.git",
+      "branch": "dsp-fpga-devel",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/plpsy/rtframe",
+      "auto_update": true,
+      "name": "rtframe",
+      "type": "git"
+    },
+    {
+      "url": "https://github.com/plpsy/rtframe-front.git",
+      "branch": "master",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/plpsy/rtframe-front",
+      "auto_update": true,
+      "name": "rtframe-front",
+      "type": "git"
+    },
+    {
+      "url": "https://github.com/plpsy/windpower.git",
+      "branch": "1card",
+      "shallow_clone": false,
+      "filter": {
+        "ignore": [],
+        "includes": []
+      },
+      "destination": "src/github.com/plpsy/windpower",
+      "auto_update": true,
+      "name": "windpower",
+      "type": "git"
     }
   ],
   "stages": [
     {
-      "name": "build",
+      "name": "build-pack",
       "fetch_materials": true,
       "never_cleanup_artifacts": false,
       "clean_working_directory": false,
@@ -70,7 +96,7 @@
         "type": "success",
         "users": [],
         "roles": [],
-        "allow_only_on_success": false
+        "allow_only_on_success": true
       },
       "environment_variables": [],
       "jobs": [
@@ -81,7 +107,7 @@
           "resources": [],
           "artifacts": [
             {
-              "source": "src/github.com/plpsy/rtframe/bin",
+              "source": "src/github.com/plpsy/windpower/publish/rtframe/rtframe_install.run",
               "destination": "",
               "type": "build"
             }
@@ -89,53 +115,15 @@
           "timeout": 0.0,
           "tasks": [
             {
-              "command": "./build-arm-go.sh",
+              "command": "./Docker-dist-build-arm.sh",
               "working_directory": "src/github.com/plpsy/rtframe",
               "timeout": -1.0,
-              "arguments": [],
+              "arguments": [
+                "dec"
+              ],
               "run_if": "passed",
               "type": "exec"
-            }
-          ]
-        },
-        {
-          "name": "build-rtfrep",
-          "environment_variables": [],
-          "tabs": [],
-          "resources": [],
-          "artifacts": [
-            {
-              "source": "src/github.com/plpsy/rtfrep/rtfrep",
-              "destination": "",
-              "type": "build"
-            }
-          ],
-          "timeout": 0.0,
-          "tasks": [
-            {
-              "command": "./build-arm-go.sh",
-              "working_directory": "src/github.com/plpsy/rtfrep",
-              "timeout": -1.0,
-              "arguments": [],
-              "run_if": "passed",
-              "type": "exec"
-            }
-          ]
-        },
-        {
-          "name": "build-rtfagent",
-          "environment_variables": [],
-          "tabs": [],
-          "resources": [],
-          "artifacts": [
-            {
-              "source": "src/github.com/plpsy/rtfagent/rtfagent",
-              "destination": "",
-              "type": "build"
-            }
-          ],
-          "timeout": 0.0,
-          "tasks": [
+            },
             {
               "command": "./build-arm-go.sh",
               "working_directory": "src/github.com/plpsy/rtfagent",
@@ -143,39 +131,10 @@
               "arguments": [],
               "run_if": "passed",
               "type": "exec"
-            }
-          ]
-        },
-        {
-          "name": "build-nsq",
-          "environment_variables": [],
-          "tabs": [],
-          "resources": [],
-          "artifacts": [
-            {
-              "source": "src/github.com/nsqio/nsq/apps/nsqd/nsqd",
-              "destination": "",
-              "type": "build"
             },
             {
-              "source": "src/github.com/nsqio/nsq/apps/nsqadmin/nsqadmin",
-              "destination": "",
-              "type": "build"
-            }
-          ],
-          "timeout": 0.0,
-          "tasks": [
-            {
-              "command": "./build-arm-go.sh",
-              "working_directory": "src/github.com/nsqio/nsq/apps/nsqd",
-              "timeout": -1.0,
-              "arguments": [],
-              "run_if": "passed",
-              "type": "exec"
-            },
-            {
-              "command": "./build-arm-go.sh",
-              "working_directory": "src/github.com/nsqio/nsq/apps/nsqadmin",
+              "command": "./pack-arm64.sh",
+              "working_directory": "src/github.com/plpsy/windpower/publish/rtframe",
               "timeout": -1.0,
               "arguments": [],
               "run_if": "passed",
