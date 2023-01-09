@@ -115,6 +115,16 @@
           "timeout": 0.0,
           "tasks": [
             {
+              "command": "./gocd-build.sh",
+              "working_directory": "src/github.com/plpsy/rtframe-front",
+              "timeout": -1.0,
+              "arguments": [
+                ""
+              ],
+              "run_if": "passed",
+              "type": "exec"
+            },
+            {
               "command": "./Docker-dist-build-arm.sh",
               "working_directory": "src/github.com/plpsy/rtframe",
               "timeout": -1.0,
