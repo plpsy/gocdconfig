@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cruise xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cruise-config.xsd" schemaVersion="139">
+  <server agentAutoRegisterKey="3e87c4c1-48ad-421b-ac15-dfd74adc5369" webhookSecret="ea6b87c1-d5ef-454d-8b7a-900d969a7b70" serverId="9e1fffc4-c80c-488d-9b7d-203bc30b2975" tokenGenerationKey="76ec1333-174e-4cb6-a151-f80ec62ac2a9">
+    <artifacts>
+      <artifactsDir>artifacts</artifactsDir>
+    </artifacts>
+  </server>
+  <config-repos>
+    <config-repo id="plpsy" pluginId="json.config.plugin">
+      <git url="https://github.com/plpsy/gocdconfig.git" autoUpdate="false" />
+      <configuration>
+        <property>
+          <key>pipeline_pattern</key>
+          <value>go</value>
+        </property>
+      </configuration>
+      <rules>
+        <allow action="refer" type="*">*</allow>
+      </rules>
+    </config-repo>
+  </config-repos>
+  <pipelines group="plpsy">
+    <pipeline name="fedoral">
+      <environmentvariables>
+        <variable name="GOPATH">
+          <value>/godata/pipelines/fedoral</value>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/plpsy/rtfrep.git" dest="src/github.com/plpsy/rtfrep" materialName="rtfrep" />
+        <git url="https://github.com/plpsy/nsq.git" dest="src/github.com/nsqio/nsq" materialName="nsq" />
+        <git url="https://github.com/plpsy/rtframe.git" branch="dsp-fpga-devel" dest="src/github.com/plpsy/rtframe" materialName="rtframe" />
+        <git url="https://github.com/plpsy/rtfedoral.git" dest="src/github.com/plpsy/rtfedoral" materialName="rtfedoral" />
+        <git url="https://github.com/plpsy/rtfedoral-frontend.git" dest="src/github.com/plpsy/rtfedoral-frontend" materialName="rtfedoral-frontend" />
+        <git url="https://github.com/plpsy/windpower.git" branch="1card" dest="src/github.com/plpsy/windpower" materialName="windpower" />
+        <git url="https://github.com/plpsy/rtframe-front.git" dest="src/github.com/plpsy/rtframe-front" materialName="rtframe-front" />
+      </materials>
+      <stage name="build-rtfedoral">
+        <approval type="success" allowOnlyOnSuccess="true" />
+        <jobs>
+          <job name="build-rtfedoral">
+            <tasks>
+              <exec command="./rtbase-build.sh" workingdir="src/github.com/plpsy/windpower/rtbase">
+                <runif status="passed" />
+              </exec>
+              <exec command="./gocd-build.sh" workingdir="src/github.com/plpsy/rtframe-front">
+                <runif status="passed" />
+              </exec>
+              <exec command="./Docker-dist-build.sh" workingdir="src/github.com/plpsy/rtframe">
+                <arg>dec</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="./gocd-build.sh" workingdir="src/github.com/plpsy/rtfedoral-frontend">
+                <arg />
+                <runif status="passed" />
+              </exec>
+              <exec command="./combine-docker-build.sh" workingdir="src/github.com/plpsy/rtfedoral">
+                <runif status="passed" />
+              </exec>
+              <exec command="./pack.sh" workingdir="src/github.com/plpsy/windpower/publish/rtfedoral">
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact type="build" src="src/github.com/plpsy/windpower/publish/rtfedoral/rtfedoral_install.run" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="docker-image">
+      <environmentvariables>
+        <variable name="GOPATH">
+          <value>/godata/pipelines/docker-image</value>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/plpsy/rtfrep.git" dest="src/github.com/plpsy/rtfrep" materialName="rtfrep" />
+        <git url="https://github.com/plpsy/rtfagent.git" dest="src/github.com/plpsy/rtfagent" materialName="rtfagent" />
+        <git url="https://github.com/plpsy/nsq.git" dest="src/github.com/nsqio/nsq" materialName="nsq" />
+        <git url="https://github.com/plpsy/rtframe.git" branch="dsp-fpga-devel" dest="src/github.com/plpsy/rtframe" materialName="rtframe" />
+        <git url="https://github.com/plpsy/rtframe-front.git" dest="src/github.com/plpsy/rtframe-front" materialName="rtframe-front" />
+        <git url="https://github.com/plpsy/windpower.git" branch="1card" dest="src/github.com/plpsy/windpower" materialName="windpower" />
+      </materials>
+      <stage name="build-pack">
+        <approval type="success" allowOnlyOnSuccess="true" />
+        <jobs>
+          <job name="build-rtframe">
+            <tasks>
+              <exec command="./gocd-build.sh" workingdir="src/github.com/plpsy/rtframe-front">
+                <arg />
+                <runif status="passed" />
+              </exec>
+              <exec command="./Docker-dist-build-arm.sh" workingdir="src/github.com/plpsy/rtframe">
+                <arg>dec</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="docker">
+                <arg>tag</arg>
+                <arg>rtframe-arm</arg>
+                <arg>rtframe</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="docker" workingdir="src/github.com/plpsy/rtframe">
+                <arg>save</arg>
+                <arg>-o</arg>
+                <arg>rtframe.tar</arg>
+                <arg>rtframe</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="xz" workingdir="src/github.com/plpsy/rtframe">
+                <arg>-z</arg>
+                <arg>rtframe.tar</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact type="build" src="src/github.com/plpsy/rtframe/rtframe.tar.xz" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="rtframe_install">
+      <environmentvariables>
+        <variable name="GOPATH">
+          <value>/godata/pipelines/rtframe_install</value>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/plpsy/rtfrep.git" dest="src/github.com/plpsy/rtfrep" materialName="rtfrep" />
+        <git url="https://github.com/plpsy/rtfagent.git" dest="src/github.com/plpsy/rtfagent" materialName="rtfagent" />
+        <git url="https://github.com/plpsy/nsq.git" dest="src/github.com/nsqio/nsq" materialName="nsq" />
+        <git url="https://github.com/plpsy/rtframe.git" branch="dsp-fpga-devel" dest="src/github.com/plpsy/rtframe" materialName="rtframe" />
+        <git url="https://github.com/plpsy/rtframe-front.git" dest="src/github.com/plpsy/rtframe-front" materialName="rtframe-front" />
+        <git url="https://github.com/plpsy/windpower.git" branch="1card" dest="src/github.com/plpsy/windpower" materialName="windpower" />
+      </materials>
+      <stage name="build-pack">
+        <approval type="success" allowOnlyOnSuccess="true" />
+        <jobs>
+          <job name="build-rtframe">
+            <tasks>
+              <exec command="./gocd-build.sh" workingdir="src/github.com/plpsy/rtframe-front">
+                <arg />
+                <runif status="passed" />
+              </exec>
+              <exec command="./Docker-dist-build-arm.sh" workingdir="src/github.com/plpsy/rtframe">
+                <arg>dec</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="./build-arm-go.sh" workingdir="src/github.com/plpsy/rtfagent">
+                <runif status="passed" />
+              </exec>
+              <exec command="./pack-arm64.sh" workingdir="src/github.com/plpsy/windpower/publish/rtframe">
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact type="build" src="src/github.com/plpsy/windpower/publish/rtframe/rtframe_install.run" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+</cruise>
+
