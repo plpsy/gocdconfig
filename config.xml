@@ -36,7 +36,7 @@
         <git url="https://github.com/plpsy/rtframe-front.git" dest="src/github.com/plpsy/rtframe-front" materialName="rtframe-front" />
       </materials>
       <stage name="build-rtfedoral">
-        <approval type="success" allowOnlyOnSuccess="true" />
+        <approval type="manual" allowOnlyOnSuccess="true" />
         <jobs>
           <job name="build-rtfedoral">
             <tasks>
@@ -83,7 +83,60 @@
         <git url="https://github.com/plpsy/windpower.git" branch="1card" dest="src/github.com/plpsy/windpower" materialName="windpower" />
       </materials>
       <stage name="build-pack">
-        <approval type="success" allowOnlyOnSuccess="true" />
+        <approval type="manual" allowOnlyOnSuccess="true" />
+        <jobs>
+          <job name="build-rtframe">
+            <tasks>
+              <exec command="./gocd-build.sh" workingdir="src/github.com/plpsy/rtframe-front">
+                <arg />
+                <runif status="passed" />
+              </exec>
+              <exec command="./Docker-dist-build-arm.sh" workingdir="src/github.com/plpsy/rtframe">
+                <arg>dec</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="docker">
+                <arg>tag</arg>
+                <arg>rtframe-arm</arg>
+                <arg>rtframe</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="docker" workingdir="src/github.com/plpsy/rtframe">
+                <arg>save</arg>
+                <arg>-o</arg>
+                <arg>rtframe.tar</arg>
+                <arg>rtframe</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="xz" workingdir="src/github.com/plpsy/rtframe">
+                <arg>-z</arg>
+                <arg>rtframe.tar</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact type="build" src="src/github.com/plpsy/rtframe/rtframe.tar.xz" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="docker-image-video" lockBehavior="unlockWhenFinished">
+      <environmentvariables>
+        <variable name="GOPATH">
+          <value>/godata/pipelines/docker-image-video</value>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/plpsy/rtfrep.git" dest="src/github.com/plpsy/rtfrep" materialName="rtfrep" />
+        <git url="https://github.com/plpsy/rtfagent.git" dest="src/github.com/plpsy/rtfagent" materialName="rtfagent" />
+        <git url="https://github.com/plpsy/nsq.git" dest="src/github.com/nsqio/nsq" materialName="nsq" />
+        <git url="https://github.com/plpsy/rtframe.git" branch="dsp-fpga-devel" dest="src/github.com/plpsy/rtframe" materialName="rtframe" />
+        <git url="https://github.com/plpsy/rtframe-front.git" dest="src/github.com/plpsy/rtframe-front" materialName="rtframe-front" />
+        <git url="https://github.com/plpsy/windpower.git" branch="1card-video" dest="src/github.com/plpsy/windpower" materialName="windpower" />
+      </materials>
+      <stage name="build-pack">
+        <approval type="manual" allowOnlyOnSuccess="true" />
         <jobs>
           <job name="build-rtframe">
             <tasks>
@@ -136,7 +189,7 @@
         <git url="https://github.com/plpsy/windpower.git" branch="1card" dest="src/github.com/plpsy/windpower" materialName="windpower" />
       </materials>
       <stage name="build-pack">
-        <approval type="success" allowOnlyOnSuccess="true" />
+        <approval type="manual" allowOnlyOnSuccess="true" />
         <jobs>
           <job name="build-rtframe">
             <tasks>
@@ -164,4 +217,3 @@
     </pipeline>
   </pipelines>
 </cruise>
-
